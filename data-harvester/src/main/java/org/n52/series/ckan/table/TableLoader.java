@@ -26,50 +26,46 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-package org.n52.series.ckan.util;
+package org.n52.series.ckan.table;
 
-public class ResourceClientConfig {
+import org.n52.series.ckan.beans.DataFile;
+import org.n52.series.ckan.beans.ResourceField;
+import org.n52.series.ckan.beans.ResourceMember;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    private static final int DEFAULT_TIMEOUT = 10000;
+public abstract class TableLoader {
 
-    private int socketTimeout = DEFAULT_TIMEOUT;
+    private static final Logger LOGGER = LoggerFactory.getLogger(TableLoader.class);
 
-    private int connectTimeout = DEFAULT_TIMEOUT;
+    private final DataTable table;
 
-    private int connectionRequestTimeout = DEFAULT_TIMEOUT;
+    private final DataFile dataFile;
 
-    private int maxConnectionPoolSize = 5;
-
-    public int getMaxConnectionPoolSize() {
-        return maxConnectionPoolSize;
+    public TableLoader(DataTable table, DataFile datafile) {
+        this.table = table;
+        this.dataFile = datafile;
     }
 
-    public void setMaxConnectionPoolSize(int maxConnectionPoolSize) {
-        this.maxConnectionPoolSize = maxConnectionPoolSize;
+    public abstract void loadData() throws TableLoadException;
+
+    protected ResourceMember getResourceMember() {
+        return table.getResourceMember();
     }
 
-    public int getSocketTimeout() {
-        return socketTimeout;
+    protected DataFile getDataFile() {
+        return dataFile;
     }
 
-    public void setSocketTimeout(int socketTimeout) {
-        this.socketTimeout = socketTimeout;
+    protected void addRow(ResourceKey id, ResourceField field, String value) {
+        table.addRow(id, field, value);
     }
 
-    public int getConnectTimeout() {
-        return connectTimeout;
+    protected void logMemory() {
+        LOGGER.trace("Max Memory: {} Mb", Runtime.getRuntime().maxMemory() / 1048576);
+        LOGGER.trace("Total Memory: {} Mb", Runtime.getRuntime().totalMemory() / 1048576);
+        LOGGER.trace("Free Memory: {} Mb", Runtime.getRuntime().freeMemory() / 1048576);
     }
 
-    public void setConnectTimeout(int connectTimeout) {
-        this.connectTimeout = connectTimeout;
-    }
-
-    public int getConnectionRequestTimeout() {
-        return connectionRequestTimeout;
-    }
-
-    public void setConnectionRequestTimeout(int connectionRequestTimeout) {
-        this.connectionRequestTimeout = connectionRequestTimeout;
-    }
 
 }
