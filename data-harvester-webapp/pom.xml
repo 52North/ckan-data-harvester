@@ -17,8 +17,10 @@
     <properties>
         <!-- dev | ci | prod -->
         <env>dev</env>
-        <local.configFile>file:${user.home}/${project.build.finalName}.properties</local.configFile>
-        <config.logger.fileappender.filepath>${catalina.base:-.}/logs/${project.build.finalName}</config.logger.fileappender.filepath>
+        <finalName>${project.artifactId}</finalName>
+        <local.configFile>file:${user.home}/${finalName}.properties</local.configFile>
+        <config.logger.fileappender.filepath>${catalina.base:-.}/logs/${finalName}</config.logger.fileappender.filepath>
+        <external.url>http://localhost:8080/${finalName}</external.url>
 
         <enforcer.skip>true</enforcer.skip>
         <mdep.analyze.skip>true</mdep.analyze.skip>
@@ -45,18 +47,24 @@
             <version>${sos.version}</version>
             <type>war</type>
         </dependency>
+        
+        <dependency>
+            <groupId>org.n52.series-api</groupId> 
+            <artifactId>series-mappings</artifactId>
+            <version>${series.api.version}</version>
+        </dependency> 
+        
     </dependencies>
 
     <build>
-        <finalName>${project.artifactId}</finalName>
-	<resources>
+        <finalName>${finalName}</finalName>
+        <resources>
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
             </resource>
-	</resources>
+        </resources>
         <plugins>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
@@ -68,10 +76,12 @@
                             <artifactId>webapp-bundle</artifactId>
                             <excludes>
                                 <exclude>cache.tmp</exclude>
-                                <exclude>static/client/jsClient</exclude>
+                                <exclude>static/client/**</exclude>
                                 <exclude>WEB-INF/classes/logback.xml</exclude>
                                 <exclude>WEB-INF/classes/config-*.json</exclude>
                                 <exclude>WEB-INF/spring/*.xml</exclude>
+                                <!-- exclude until webapp-bundle ships newest mapping files
+                                <exclude>WEB-INF/classes/mapping/extension/readonly/**</exclude> -->
                                 <exclude>WEB-INF/web.xml</exclude>
                             </excludes>
                         </overlay>
