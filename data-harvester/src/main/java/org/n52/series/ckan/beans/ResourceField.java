@@ -28,18 +28,21 @@
  */
 package org.n52.series.ckan.beans;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.MissingNode;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import org.n52.series.ckan.da.CkanConstants;
 import org.n52.series.ckan.da.CkanMapping;
+import org.n52.series.ckan.util.FieldVisitor;
 import org.n52.series.ckan.util.JsonUtil;
+import org.n52.series.ckan.util.VisitableField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ResourceField {
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.MissingNode;
+
+public class ResourceField implements VisitableField {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceField.class);
 
@@ -110,6 +113,10 @@ public class ResourceField {
         return fieldId.toLowerCase(Locale.ROOT);
     }
 
+    public boolean matchesIndex(int i) {
+        return index == i;
+    }
+
     public int getIndex() {
         return index;
     }
@@ -167,21 +174,6 @@ public class ResourceField {
         return node.at("/" + name).asText();
     }
 
-    public String normalizeValue(String value) {
-        if (value != null) {
-            try {
-                if (this.isOfType(Integer.class)) {
-                    value = new Integer(value).toString();
-                } else if (this.isOfType(Double.class)) {
-                    value = new Double(value).toString();
-                }
-            } catch (NumberFormatException e) {
-                LOGGER.error("Could normalize field value '{}' (type {}) ", value, getFieldType(), e);
-            }
-        }
-        return value;
-    }
-
     public boolean equalsValues(String thisValue, String otherValue) {
         if (otherValue != null) {
             try {
@@ -218,6 +210,26 @@ public class ResourceField {
         }
         final String fieldType = getFieldType();
         return ckanMapping.hasDataTypeMappings(ofType, fieldType);
+    }
+
+    @Override
+    public <T> void accept(FieldVisitor<T> visitor, String value) {
+        visitor.visit(this, normalizeValue(value));
+    }
+
+    private String normalizeValue(String value) {
+        if (value != null) {
+            try {
+                if (this.isOfType(Integer.class)) {
+                    value = new Integer(value).toString();
+                } else if (this.isOfType(Double.class)) {
+                    value = new Double(value).toString();
+                }
+            } catch (NumberFormatException e) {
+                LOGGER.error("Could normalize field value '{}' (type {}) ", value, getFieldType(), e);
+            }
+        }
+        return value;
     }
 
     @Override

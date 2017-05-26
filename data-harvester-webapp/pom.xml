@@ -17,11 +17,13 @@
     <properties>
         <!-- dev | ci | prod -->
         <env>dev</env>
-        <local.configFile>file:${user.home}/${project.build.finalName}.properties</local.configFile>
-        <config.logger.fileappender.filepath>${catalina.base:-.}/logs/${project.build.finalName}</config.logger.fileappender.filepath>
+        <finalName>${project.artifactId}</finalName>
+        <local.configFile>file:${user.home}/${finalName}.properties</local.configFile>
+        <config.logger.fileappender.filepath>${catalina.base:-.}/logs/${finalName}</config.logger.fileappender.filepath>
+        <external.url>http://localhost:8080/${finalName}</external.url>
 
-        <enforcer.skip>true</enforcer.skip>
-        <mdep.analyze.skip>true</mdep.analyze.skip>
+<!--         <enforcer.skip>true</enforcer.skip> -->
+<!--         <mdep.analyze.skip>true</mdep.analyze.skip> -->
 
         <java.compiler.source>1.7</java.compiler.source>
         <java.compiler.target>1.7</java.compiler.target>
@@ -31,7 +33,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
-
+        <dependency>
+            <groupId>org.n52.sensorweb.sos</groupId>
+            <artifactId>webapp-bundle</artifactId>
+            <version>${sos.version}</version>
+            <scope>provided</scope>
+            <type>war</type>
+        </dependency>
+        
         <dependency>
             <groupId>org.n52.sensorweb.ckan</groupId>
             <artifactId>data-harvester</artifactId>
@@ -40,23 +49,35 @@
         </dependency>
 
         <dependency>
-            <groupId>org.n52.sensorweb.sos</groupId>
-            <artifactId>webapp-bundle</artifactId>
-            <version>${sos.version}</version>
-            <type>war</type>
+            <groupId>org.n52.series-api</groupId> 
+            <artifactId>series-mappings</artifactId>
+            <version>${series.api.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>xml-apis</groupId>
+            <artifactId>xml-apis</artifactId>
+            <version>1.3.04</version>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
 
     <build>
-        <finalName>${project.artifactId}</finalName>
-	<resources>
+        <finalName>${finalName}</finalName>
+        <resources>
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
             </resource>
-	</resources>
+        </resources>
         <plugins>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
@@ -68,10 +89,12 @@
                             <artifactId>webapp-bundle</artifactId>
                             <excludes>
                                 <exclude>cache.tmp</exclude>
-                                <exclude>static/client/jsClient</exclude>
+                                <exclude>static/client/**</exclude>
                                 <exclude>WEB-INF/classes/logback.xml</exclude>
                                 <exclude>WEB-INF/classes/config-*.json</exclude>
                                 <exclude>WEB-INF/spring/*.xml</exclude>
+                                <!-- exclude until webapp-bundle ships newest mapping files
+                                <exclude>WEB-INF/classes/mapping/extension/readonly/**</exclude> -->
                                 <exclude>WEB-INF/web.xml</exclude>
                             </excludes>
                         </overlay>
